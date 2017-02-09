@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Todds Sudoku</title>
+</head>
+<body  onload="load()">
+<canvas id ='puzzle' height='900' width='900'></canvas>
+<br>
+<button onclick="analyze()">Analyze All</button>
+<button onclick="deepAnalyzeRows()">Deep Analyze Row</button>
+<button onclick="deepAnalyzeCols()">Deep Analyze Col</button>
+<button onclick="deepAnalyzeSquares()">Deep Analyze Square</button>
+<br>
+<button onclick="twoAnalyzeRows()">two Analyze Row</button>
+<button onclick="twoAnalyzeCols()">two Analyze Col</button>
+<button onclick="nakedPairsSquares()">Naked Pairs Square</button>
+<button onclick="omissionsSquare()">omissions Square</button>
+
+</body>
+</html>
+
+
+<script>
+    function load() {
+    numbersEmiminated= 0;
+
+//        s = [
+//            [0, 0, 0, 0, 8, 9, 5, 2, 0],
+//            [5, 0, 0, 2, 0, 0, 0, 0, 0],
+//            [0, 0, 4, 0, 0, 5, 7, 8, 0],
+//
+//            [4,2,3,6,5,0,0,0,0],
+//            [6,0,8,0,2,0,3,0,5],
+//            [0,0,0,0,1,3,6,4,2],
+//
+//            [0,3,6,5,0,0,8,0,0],
+//            [0,0,0,0,0,1,0,0,3],
+//            [0,9,5,3,4,0,0,0,0]
+//
+//        ]; // sudoko puzzle
+//        s = [ //183
+//            [2,4,0,0,0,0,8,0,9],
+//            [5,0,6,0,0,0,0,0,0],
+//            [7,0,0,0,0,8,0,3,0],
+//
+//            [0,0,0,8,0,2,0,0,6],
+//            [0,0,0,4,5,7,0,0,0],
+//            [8,0,0,1,0,9,0,0,0],
+//
+//            [0,3,0,5,0,0,0,0,8],
+//            [0,0,0,0,0,0,4,0,3],
+//            [6,0,5,0,0,0,0,7,2]
+//
+//        ]; // sudoko puzzle
+
+        s = [ //231
+            [0,0,4,5,0,0,0,8,0],
+            [0,1,0,0,0,0,0,0,6],
+            [3,0,0,0,8,0,4,0,0],
+
+            [6,0,0,1,0,3,0,0,0],
+            [0,0,5,0,0,0,9,0,0],
+            [0,0,0,2,0,7,0,0,8],
+
+            [0,0,8,0,6,0,0,0,7],
+            [7,0,0,0,0,0,0,2,0],
+            [0,4,0,0,0,9,3,0,0]
+
+        ]; // sudoko puzzle
+
+//        s = [ // stupid tj class
+//            [0,0,0,0,0,3,0,1,7],
+//            [0,1,5,0,0,9,0,0,8],
+//            [0,6,0,0,0,0,0,0,0],
+//
+//            [1,0,0,0,0,7,0,0,0],
+//            [0,0,9,0,0,0,2,0,0],
+//            [0,0,0,5,0,0,0,0,4],
+//
+//            [0,0,0,0,0,0,0,2,0],
+//            [5,0,0,6,0,0,3,4,0],
+//            [3,4,0,2,0,0,0,0,0]
+//
+//        ]; // sudoko puzzle
+//        s = [ // 232
+//            [0,1,0,6,0,8,0,4,0],
+//            [0,7,0,0,0,0,0,3,0],
+//            [3,0,6,0,0,0,8,0,1],
+//
+//            [0,0,0,4,8,9,0,0,0],
+//            [5,0,0,0,0,0,0,0,2],
+//            [0,0,0,2,5,7,0,0,0],
+//
+//            [1,0,4,0,0,0,9,0,8],
+//            [0,6,0,0,0,0,0,7,0],
+//            [0,9,0,5,0,2,0,6,0]
+//
+//        ]; // sudoko puzzle
+//        s = [ //
+//            [],
+//            [],
+//            [],
+//
+//            [],
+//            [],
+//            [],
+//
+//            [],
+//            [],
+//            []
+//
+//        ]; // sudoko puzzle
+//        s = [ //234
+//            [0,6,0,1,0,0,0,7,0],
+//            [0,0,0,0,0,4,6,8,0],
+//            [1,0,0,0,0,0,0,0,9],
+//
+//            [0,4,0,0,0,8,3,0,0],
+//            [0,0,0,5,0,9,0,0,0],
+//            [0,0,1,4,0,0,0,6,0],
+//
+//            [9,0,0,0,0,0,0,0,5],
+//            [0,2,3,7,0,0,0,0,0],
+//            [0,8,0,0,0,2,0,4,0]
+//
+//        ]; // sudoko puzzle
+
+
+        drawGrid();
+        p=s //possibiblties
+        for (var x = 0; x < 9; ++x) {
+            for (var i = 0; i < 9; ++i) {
+                if (s[i][x] == 0){
+                    p[i][x]=[1,2,3,4,5,6,7,8,9]
+                }else
+                {
+                    p[i][x] = [s[i][x]]
+                }
+
+
+            }
+        }
+        // draw all the cells
+        for (var x = 0; x < 9; ++x) {
+            for (var i = 0; i < 9; ++i) {
+
+                drawCell(i , x, p[x][i]);
+
+            }
+        }
+    //analyze()
+    }
+
+    function getArea(area,type){
+        var o = []
+        if (type == 'square'){
+            var row =  Math.floor(area/3.1)*3;
+            var col =((area-1)%3)*3;
+        }
+        for (var x = 0; x < 9; ++x) {
+            switch(type){
+                case 'row':
+                    o[x] = {
+                        possibilites: p[area][x],
+                        cell :[area,x,(Math.floor(area/3)*3)+1+Math.floor(x/3)]
+                    }
+                    break;
+                case 'col':
+                    o[x] = {
+                        possibilites: p[x][area],
+                        cell :[x,area,(Math.floor(x/3)*3)+1+Math.floor(area/3)]
+                    }
+                    break;
+
+                case 'square':
+                    var a = row+Math.floor(x/3);
+                    var b = col + ((x)%3);
+
+                    o[x] = {
+                        possibilites: p[a][b],
+                        cell :[a,b,area]
+                    }
+                    break;
+            }
+
+            o[x].numbers=o[x].possibilites.length;
+
+        }
+        switch(type) {
+            case 'square':
+            // check for possible number in only one col
+                o.colFound = []
+                for (var i = 1; i < 10; ++i) {
+                o.colFound[i]=[] // init colfound
+                    }
+                    for (var x = 0; x < 9; ++x) {
+
+                    for (var i = 1; i < 10; ++i) {
+                        if (o[x].possibilites.indexOf(i) != -1 && o[x].numbers > 1) { // the search number x is found in cell i
+                        //console.log(i+' found in col '+o[x].cell[1])
+                            if (o.colFound[i].indexOf(o[x].cell[1]) == -1 ) {
+                                o.colFound[i].push(o[x].cell[1])
+                            }
+                        }
+                    }
+                }
+            //
+                o.rowFound = []
+                for (var i = 1; i < 10; ++i) {
+                    o.rowFound[i]=[] // init rowfound
+                }
+                for (var x = 0; x < 9; ++x) {
+
+                    for (var i = 1; i < 10; ++i) {
+                        if (o[x].possibilites.indexOf(i) != -1 && o[x].numbers > 1) { // the search number x is found in cell i
+                            //console.log(i+' found in row '+o[x].cell[0])
+                            if (o.rowFound[i].indexOf(o[x].cell[0]) == -1 ) {
+                                o.rowFound[i].push(o[x].cell[0])
+                            }
+                        }
+                    }
+                }
+                break;
+
+                default:
+        }
+
+
+
+
+        return o;
+    }
+
+    function show(){
+        for (var x = 0; x < 9; ++x) {
+           var line = ''
+            for (var y = 0; y < 9; ++y) {
+                if (p[x][y].length == 1){
+                    line += p[x][y][0]+'|'
+                } else
+                {
+                    line+=' |'
+                }
+
+            }
+            console.log(line)
+        }
+
+
+    }
+    function omissionsSquare(){
+        for (var i = 1; i < 10; ++i) {
+            omissions(i);
+
+        }
+
+    }
+    function omissions(square){
+        o=getArea(square,'square')
+        for (var i = 1; i < 10; ++i) {
+            if (o.colFound[i].length == 1) { // the number i is only found in this col -
+
+                r=getArea(o.colFound[i][0],'col'); // get the col
+                for (var x = 0; x < 9; ++x) {
+                    if (r[x].cell[2] != square){
+                        removeValue(r[x].cell[0],r[x].cell[1],i,' because it has to been in square '+square+' in this col')
+
+                    }
+
+                }
+            }
+
+
+            if (o.rowFound[i].length == 1) { // the number i is only found in this col -
+
+                r=getArea(o.rowFound[i][0],'row'); // get the col
+                for (var x = 0; x < 9; ++x) {
+                    if (r[x].cell[2] != square){
+                        removeValue(r[x].cell[0],r[x].cell[1],i,' because it has to been in square '+square+' in this row')
+
+                    }
+
+                }
+            }
+
+
+
+        }
+        analyze();
+
+
+
+
+
+    }
+    function analyze(){
+    console.log('Analyzing -----------------------------------------')
+    do {
+        numbersEmiminated = 0;
+
+        for (var x = 0; x < 9; ++x) {
+            analyzeRow(x)
+            analyzeCol(x)
+
+        }
+        for (var x = 0; x < 3; ++x) {
+            for (var y = 0; y < 3; ++y) {
+                analyzeSquare(x, y)
+            }
+        }
+        console.log(numbersEmiminated)
+    } while (numbersEmiminated > 0)
+
+}
+    function twoAnalyzeCols(){
+        //  console.clear();
+        for (var x = 0; x < 9; ++x) {
+            twoAnalyzeCol(x)
+
+        }
+        analyze();
+
+    }
+    function twoAnalyzeRows(){
+
+        for (var x = 0; x < 9; ++x) {
+            twoAnalyzeRow(x);
+
+        }
+        analyze();
+    }
+
+    function deepAnalyzeCols(){
+      //  console.clear();
+        for (var x = 0; x < 9; ++x) {
+            deepAnalyzeCol(x)
+
+        }
+        analyze();
+
+    }
+    function deepAnalyzeRows(){
+
+        for (var x = 0; x < 9; ++x) {
+              deepAnalyzeRow(x);
+
+        }
+        analyze();
+    }
+    function deepAnalyzeSquares(){
+        for (var x = 0 ;x<3;++x) {
+            for (var y = 0 ;y<3 ;++y){
+                deepAnalyzeSquare(x,y)
+
+
+            }
+
+        }
+        analyze();
+    }
+    function twoAnalyzeRow(i){
+        for (var x = 0;x<9;++x){
+            if (p[i][x].length == 2){
+                // console.log('Col: Found 2 remaining values at '+x+','+i)
+                for (var y = 0;y<9;++y){
+                    if (y!=x){ // dont compare against self
+                        if (p[i][y].length == 2 && p[i][y][0] == p[i][x][0] && p[i][y][1] == p[i][x][1] ){
+                            //   console.log ('Can elinate '+p[y][i][0]+' and '+p[y][i][1]+' from this column except '+x+' and '+y)
+                            for (var z = 0;z<9;++z){
+                                if (z != x && z != y){
+                                    if (p[i][z].indexOf(p[i][y][0] != -1)){
+                                        removeValue(i,z,p[i][y][0],' because it can go there (2 rule)')
+
+                                    }
+                                    if (p[i][z].indexOf(p[i][y][1] != -1)){
+                                        removeValue(i,z,p[i][y][1],' because it can go there (2 rule)')
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function twoAnalyzeCol(i){
+        for (var x = 0;x<9;++x){
+            if (p[x][i].length == 2){
+              // console.log('Col: Found 2 remaining values at '+x+','+i)
+                for (var y = 0;y<9;++y){
+                   if (y!=x){ // dont compare against self
+                        if (p[y][i].length == 2 && p[y][i][0] == p[x][i][0] && p[y][i][1] == p[x][i][1] ){
+                         //   console.log ('Can elinate '+p[y][i][0]+' and '+p[y][i][1]+' from this column except '+x+' and '+y)
+                            for (var z = 0;z<9;++z){
+                                if (z != x && z != y){
+                                    if (p[z][i].indexOf(p[y][i][0] != -1)){
+                                        removeValue(z,i,p[y][i][0],' because it can go there (2 rule)')
+
+                                    }
+                                    if (p[z][i].indexOf(p[y][i][1] != -1)){
+                                        removeValue(z,i,p[y][i][1],' because it can go there (2 rule)')
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+function nakedPairsSquares(){
+       for (var i = 1;i<10;++i) {
+         //var i = 7
+            console.log('Sqaure '+i)
+            o = getArea(i, 'square')
+            for (var x = 0; x < 9; ++x) {
+                if (o[x].numbers == 2) { // 2 only 2 numbers possible
+
+                    for (var y = 0; y < 9; ++y) {
+                        if (y != x) { // dont compare against self
+                            if (o[y].numbers == 2 && o[y].possibilites[0] == o[x].possibilites[0] && o[y].possibilites[1] == o[x].possibilites[1]) {
+                                //   console.log ('Can elinate '+p[y][i][0]+' and '+p[y][i][1]+' from this column except '+x+' and '+y)
+                                for (var z = 0; z < 9; ++z) {
+                                   //console.log('cell:'+o[z].cell)
+                                    if (z != x && z != y) {
+                                        if (o[z].possibilites.indexOf(o[y].possibilites[0] != -1)) {
+                                            removeValue(o[z].cell[0], o[z].cell[1], o[y].possibilites[0], ' because it cant go there (2 rule)')
+
+                                        }
+                                        if (o[z].possibilites.indexOf(o[y].possibilites[1] != -1)) {
+                                            removeValue(o[z].cell[0], o[z].cell[1], o[y].possibilites[1], ' because it cant go there (2 rule)')
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+
+       }
+    analyze();
+
+}
+    function deepAnalyzeSquare(a,b){
+        var valueToRemove;
+        for (var num = 0;num<9;++num) {
+            var totalfound = 0;
+            var lastfoundy = 0;
+            var lastfoundx = 0;
+
+            for (var x = a * 3; x < (a + 1) * 3; ++x) {
+                for (var y = b * 3; y < (b + 1) * 3; ++y) {
+                    if (p[x][y].length != 1 && p[x][y].indexOf(num) != -1) { // check each cell in the row for a know value
+                        ++totalfound
+                        lastfoundy = y;
+                        lastfoundx = x;
+                    }
+
+
+                }
+            }
+            if (totalfound == 1){
+                p[lastfoundx][lastfoundy] = [num];
+                console.log('Deep col Solved '+lastfoundx+','+lastfoundy+' because it was the only place an '+num+' could be')
+                drawCell(lastfoundy,lastfoundx,p[lastfoundx][lastfoundy],true);
+
+            }
+
+
+        }
+    }
+    function deepAnalyzeCol(i){
+        var valueToRemove;
+
+        for (var x = 0;x<9;++x){
+            var totalfound = 0;
+            var lastfound = 0;
+            for (var y = 0;y<9;++y){
+                if (p[y][i].length != 1 && p[y][i].indexOf(x) != -1 ){
+                    ++totalfound
+                    lastfound = y;
+                }
+            }
+            if (totalfound == 1){
+                p[lastfound][i] = [x];
+                console.log('Deep col Solved '+i+','+lastfound+' because it was the only place an '+x+' could be')
+                drawCell(i,lastfound,p[lastfound][i],true);
+            }
+        }
+    }
+
+    function deepAnalyzeRow(i){
+        var valueToRemove;
+
+        for (var x = 0;x<9;++x){
+            var totalfound = 0;
+            var lastfound = 0;
+            for (var y = 0;y<9;++y){
+                if (p[i][y].length != 1 && p[i][y].indexOf(x) != -1 ){
+                    ++totalfound
+                    lastfound = y;
+                }
+            }
+            if (totalfound == 1){
+                p[i][lastfound] = [x];
+                console.log('Deep Row Solved '+i+','+lastfound+' because it was the only place an '+x+' could be')
+                drawCell(lastfound,i,p[i][lastfound],true);
+
+            }
+
+
+        }
+
+
+    }
+
+    function analyzeSquare(a,b){
+        var valueToRemove;
+        for (var x = a*3 ;x<(a+1)*3;++x){
+            for (var y = b*3 ;y<(b+1)*3;++y){
+                if (p[x][y].length == 1){ // check each cell in the row for a know value
+                    valueToRemove =  p[x][y][0]
+                    for (var i = a*3 ;i<(a+1)*3;++i){
+                        for (var j = b*3 ;j<(b+1)*3;++j) {
+                            removeValue(i,j,valueToRemove,'because it was already in the square')
+
+
+                        }
+                    }
+
+                }
+
+
+            }
+        }
+   }
+    function analyzeCol(i){
+        var valueToRemove;
+        for (var x = 0;x<9;++x){
+            if (p[x][i].length == 1){ // check each cell in the row for a know value
+                valueToRemove =  p[x][i][0]
+                for (var m = 0;m<9;++m){
+                     // if this cell isn't know - see if the know value is in there and remove it
+                        removeValue(m,i,valueToRemove,'because it was already in the column')
+                }
+            }
+        }
+
+    }
+    function analyzeRow(i){
+        var valueToRemove;
+        for (var x = 0;x<9;++x){
+            if (p[i][x].length == 1){ // check each cell in the row for a know value
+                valueToRemove =  p[i][x][0]
+                for (var m = 0;m<9;++m){
+                   // if this cell isn't know - see if the know value is in there and remove it
+                    removeValue(i,m,valueToRemove,'because it was already in the row')
+
+                }
+            }
+        }
+    }
+
+function removeValue(x,y,val,reason){
+    var index =p[x][y].indexOf(val)
+    if (index != -1 && p[x][y].length > 1){
+        p[x][y].splice(index,1)
+//        p[x][y][index] = p[x][y][0]; // move the unwanted element to top of the array
+//        p[x][y].shift() // remove the top of the array
+        drawCell(y,x,p[x][y],true)
+        ++numbersEmiminated;
+        console.log('removed '+val+' from cell '+x+','+y+' '+reason)
+    }
+
+}
+
+    function drawCell(x,y,val,solved){
+        if (val == undefined || val == 0){return}
+        var e = document.getElementById("puzzle");
+        var ctx = e.getContext("2d");
+
+        var w = e.width/9;
+        var h = e.height/9;
+        ctx.clearRect(((x)*w)+1,((y)*h)+1, w-2, h-2);
+        if (val.length == 1){
+            ctx.font = "100px Arial";
+            if (!solved){
+                ctx.fillStyle='#000000'
+            }else{
+                ctx.fillStyle='#ff0000'
+            }
+            ctx.fillText(val,((x)*w)+25,((y)*h)+85);
+
+        } else
+        {
+            ctx.font = "20px Arial";
+            ctx.fillStyle='#a0a0a0'
+            if (val.indexOf(1) != -1) ctx.fillText(1,((x)*w)+10,((y)*h)+20);
+            if (val.indexOf(2) != -1) ctx.fillText(2,((x)*w)+40,((y)*h)+20);
+            if (val.indexOf(3) != -1) ctx.fillText(3,((x)*w)+70,((y)*h)+20);
+            if (val.indexOf(4) != -1) ctx.fillText(4,((x)*w)+10,((y)*h)+40);
+            if (val.indexOf(5) != -1) ctx.fillText(5,((x)*w)+40,((y)*h)+40);
+            if (val.indexOf(6) != -1) ctx.fillText(6,((x)*w)+70,((y)*h)+40);
+            if (val.indexOf(7) != -1) ctx.fillText(7,((x)*w)+10,((y)*h)+60);
+            if (val.indexOf(8) != -1) ctx.fillText(8,((x)*w)+40,((y)*h)+60);
+            if (val.indexOf(9) != -1) ctx.fillText(9,((x)*w)+70,((y)*h)+60);
+
+
+        }
+
+    }
+    function drawGrid(){
+        var e = document.getElementById("puzzle");
+        var ctx = e.getContext("2d");
+        ctx.clearRect(0, 0, e.width, e.height); // clear everything - probably dont need this
+        var x = 1;
+        // vert lines
+        for (var  i=1;i<9;++i){
+            ctx.beginPath()
+            ctx.moveTo((e.width/9)*i,0)
+            ctx.lineTo((e.width/9)*i,e.height)
+            if (x == 3){ // set this line colors
+                ctx.strokeStyle = '#000000';
+                x = 0;
+            } else{
+                ctx.strokeStyle = '#a0a0a0';
+            }
+            ++x
+            ctx.stroke()
+        }
+        // horizontal lines
+        x = 1;
+        for (var  i=1;i<9;++i){
+            ctx.beginPath()
+            ctx.moveTo(0,(e.height/9)*i)
+            ctx.lineTo(e.width,(e.height/9)*i)
+            if (x == 3){ // set this line colors
+                ctx.strokeStyle = '#000000';
+                x = 0;
+            } else{
+                ctx.strokeStyle = '#a0a0a0';
+            }
+            ++x
+            ctx.stroke()
+        }
+
+        // draw the possibilities
+        for (var x = 0; x < 9; ++x) {
+            for (var i = 0; i < 9; ++i) {
+
+            }
+        }
+
+
+    }
+    function sleep(milliseconds) {
+        var start = new Date().getTime();
+        for (var i = 0; i < 1e7; i++) {
+            if ((new Date().getTime() - start) > milliseconds){
+                break;
+            }
+        }
+    }
+</script>
